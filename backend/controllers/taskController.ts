@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { Task } from '../models/Task';
 import { createClient } from 'redis';
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 // Initialize Redis Client
 const redisClient = createClient({
   socket: { host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT) },
@@ -69,7 +70,7 @@ export const getTaskById = async (req: Request, res: Response): Promise<void> =>
     const cachedTask = await redisClient.get(cacheKey);
 
     if (cachedTask) {
-      return res.status(200).json(JSON.parse(cachedTask));
+      res.status(200).json(JSON.parse(cachedTask));
     }
 
     const task = await Task.findById(id);
