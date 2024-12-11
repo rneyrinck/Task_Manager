@@ -6,7 +6,7 @@ export interface ITask extends Document {
   priority: 'Low' | 'Medium' | 'High';
   status: 'Pending' | 'In Progress' | 'Completed';
   dueDate: Date;
-  userId: mongoose.Types.ObjectId; // Explicitly use Mongoose's ObjectId type
+  // userId: mongoose.Types.ObjectId; // Explicitly use Mongoose's ObjectId type
 }
 
 const TaskSchema = new Schema<ITask>({
@@ -15,7 +15,7 @@ const TaskSchema = new Schema<ITask>({
   priority: { type: String, enum: ['Low', 'Medium', 'High'], required: true },
   status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], required: true },
   dueDate: { type: Date, required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Adjust for compatibility
+  // userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // Adjust for compatibility
 });
 
 export const Task = mongoose.model<ITask>('Task', TaskSchema);
