@@ -7,6 +7,8 @@ import { Task } from '../models/Task';
 const app = express();
 app.use(express.json());
 app.use('/api/tasks', taskRoutes);
+import * as dotenv from 'dotenv';
+dotenv.config();
 jest.setTimeout(30000);
 describe('Task Routes', () => {
     beforeAll(async () => {

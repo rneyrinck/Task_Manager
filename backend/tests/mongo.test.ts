@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 jest.setTimeout(30000);
 describe('MongoDB Connection', () => {
     beforeAll(async () => {

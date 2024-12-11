@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import { Task } from '../models/Task';
+import * as dotenv from 'dotenv';
+dotenv.config();
 jest.setTimeout(30000);
 describe('Task Model', () => {
     beforeAll(async () => {

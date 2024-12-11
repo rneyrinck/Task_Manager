@@ -1,5 +1,6 @@
 import { createClient } from 'redis';
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 describe('Redis Cloud Connection', () => {
   let redisClient: ReturnType<typeof createClient>;
 
