@@ -1,17 +1,22 @@
 import mongoose from 'mongoose';
-import { connectMongoDB } from '../config/mongo';
 
+jest.setTimeout(30000);
 describe('MongoDB Connection', () => {
-  beforeAll(async () => {
-    process.env.MONGO_URI = 'mongodb://localhost:27017/testdb';
-  });
+    beforeAll(async () => {
+        const uri = process.env.MONGO_URI;
+        console.log('MongoDB URI:', uri);
+        if (!uri) {
+            throw new Error('MONGO_URI is not defined in the environment variables');
+        }
+        await mongoose.connect(uri);
+    });
 
-  it('should connect to MongoDB successfully', async () => {
-    await connectMongoDB();
-    expect(mongoose.connection.readyState).toBe(1); // 1 = connected
-  });
+    it('should connect to MongoDB successfully', () => {
+        expect(mongoose.connection.readyState).toBe(1); // 1 = connected
+    });
 
-  afterAll(async () => {
-    await mongoose.connection.close();
-  });
+    afterAll(async () => {
+        await mongoose.connection.dropDatabase(); // Clean up test database
+        await mongoose.connection.close();        // Close the connection
+    });
 });

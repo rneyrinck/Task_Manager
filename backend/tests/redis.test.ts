@@ -1,10 +1,18 @@
-import { createClient } from 'redis-mock';
+import { createClient } from 'redis';
 
-describe('Redis Connection', () => {
+describe('Redis Cloud Connection', () => {
   let redisClient: ReturnType<typeof createClient>;
 
-  beforeAll(() => {
-    redisClient = createClient();
+  beforeAll(async () => {
+    redisClient = createClient({
+      socket: {
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT),
+      },
+      password: process.env.REDIS_PASSWORD,
+    });
+
+    await redisClient.connect();
   });
 
   it('should set and get a key successfully', async () => {
@@ -13,7 +21,7 @@ describe('Redis Connection', () => {
     expect(value).toBe('test_value');
   });
 
-  afterAll(() => {
-    redisClient.quit();
+  afterAll(async () => {
+    await redisClient.disconnect(); // Properly close the Redis client connection
   });
 });
