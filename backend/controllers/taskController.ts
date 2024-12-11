@@ -22,14 +22,38 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
 
 export const getTasks = async (req: Request, res: Response): Promise<void> => {
   try {
-    const cachedTasks = await redisClient.get('tasks');
+    const { page = 1, limit = 10, search, status, priority } = req.query;
+
+    // Generate a unique cache key based on query parameters
+    const cacheKey = `tasks:${page}:${limit}:${search || ''}:${status || ''}:${priority || ''}`;
+    const cachedTasks = await redisClient.get(cacheKey);
+
     if (cachedTasks) {
       res.status(200).json(JSON.parse(cachedTasks));
     }
 
-    const tasks = await Task.find();
-    await redisClient.set('tasks', JSON.stringify(tasks), { EX: 60 });
-    res.status(200).json(tasks);
+    // Build a dynamic query object
+    const query: any = {};
+    if (search) {
+      query.title = { $regex: search, $options: 'i' }; // Case-insensitive search
+    }
+    if (status) {
+      query.status = status;
+    }
+    if (priority) {
+      query.priority = priority;
+    }
+
+    // Pagination logic
+    const skip = (Number(page) - 1) * Number(limit);
+    const tasks = await Task.find(query).skip(skip).limit(Number(limit));
+    const total = await Task.countDocuments(query);
+
+    // Cache the response
+    const response = { tasks, total, page: Number(page), limit: Number(limit) };
+    await redisClient.set(cacheKey, JSON.stringify(response), { EX: 60 }); // Cache for 60 seconds
+
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve tasks', error });
   }
