@@ -1,12 +1,9 @@
 import mongoose from 'mongoose';
 import { Task } from '../models/Task';
 
-describe('Task Model Tests', () => {
+describe('Task Model', () => {
   beforeAll(async () => {
-    await mongoose.connect('mongodb://localhost:27017/testdb', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect('mongodb://localhost:27017/testdb');
   });
 
   afterAll(async () => {
