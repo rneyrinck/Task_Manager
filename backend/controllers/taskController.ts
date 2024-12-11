@@ -61,10 +61,22 @@ export const getTasks = async (req: Request, res: Response): Promise<void> => {
 
 export const getTaskById = async (req: Request, res: Response): Promise<void> => {
   try {
-    const task = await Task.findById(req.params.id);
+    const { id } = req.params;
+
+    // Check Redis Cache
+    const cacheKey = `task:${id}`;
+    const cachedTask = await redisClient.get(cacheKey);
+
+    if (cachedTask) {
+      return res.status(200).json(JSON.parse(cachedTask));
+    }
+
+    const task = await Task.findById(id);
     if (!task) {
       res.status(404).json({ message: 'Task not found' });
     } else {
+      // Cache the task
+      await redisClient.set(cacheKey, JSON.stringify(task), { EX: 60 }); // Cache for 60 seconds
       res.status(200).json(task);
     }
   } catch (error) {
