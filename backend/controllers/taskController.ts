@@ -14,6 +14,7 @@ redisClient.connect().catch((err) => console.error('Redis connection error:', er
 export const createTask = async (req: Request, res: Response): Promise<void> => {
   try {
     const task = await Task.create(req.body);
+    await redisClient.del('tasks'); // Invalidate the tasks list cache
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: 'Failed to create task', error });
@@ -86,11 +87,13 @@ export const getTaskById = async (req: Request, res: Response): Promise<void> =>
 
 export const updateTask = async (req: Request, res: Response): Promise<void> => {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id } = req.params;
+    const task = await Task.findByIdAndUpdate(id, req.body, { new: true });
     if (!task) {
       res.status(404).json({ message: 'Task not found' });
     } else {
-      await redisClient.del('tasks'); // Invalidate cache
+      await redisClient.del('tasks'); // Invalidate the tasks list cache
+      await redisClient.del(`task:${id}`); // Invalidate individual task cache
       res.status(200).json(task);
     }
   } catch (error) {
@@ -100,11 +103,13 @@ export const updateTask = async (req: Request, res: Response): Promise<void> => 
 
 export const deleteTask = async (req: Request, res: Response): Promise<void> => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const { id } = req.params;
+    const task = await Task.findByIdAndDelete(id);
     if (!task) {
       res.status(404).json({ message: 'Task not found' });
     } else {
-      await redisClient.del('tasks'); // Invalidate cache
+      await redisClient.del('tasks'); // Invalidate the tasks list cache
+      await redisClient.del(`task:${id}`); // Invalidate individual task cache
       res.status(200).json({ message: 'Task deleted successfully' });
     }
   } catch (error) {
