@@ -32,6 +32,7 @@ export const getTasks = async (req: Request, res: Response): Promise<void> => {
 
     if (cachedTasks) {
       res.status(200).json(JSON.parse(cachedTasks));
+      return; // Stop further execution
     }
 
     // Build a dynamic query object
@@ -51,10 +52,16 @@ export const getTasks = async (req: Request, res: Response): Promise<void> => {
     const tasks = await Task.find(query).skip(skip).limit(Number(limit));
     const total = await Task.countDocuments(query);
 
-    // Cache the response
-    const response = { tasks, total, page: Number(page), limit: Number(limit) };
-    await redisClient.set(cacheKey, JSON.stringify(response), { EX: 60 }); // Cache for 60 seconds
+    // Prepare response
+    const response = {
+      tasks,
+      total,
+      page: Number(page),
+      limit: Number(limit),
+    };
 
+    // Cache the response
+    await redisClient.set(cacheKey, JSON.stringify(response), { EX: 60 }); // Cache for 60 seconds
     res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ message: 'Failed to retrieve tasks', error });
